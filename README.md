@@ -95,9 +95,7 @@ docker pull docker.umami.is/umami-software/umami:latest
 ---
 
 ## Getting Updates
-=======
 ## 🔄 Getting Updates
-=======
 > [!WARNING]  
 > If you are updating from Umami V2, image "postgresql-latest" is deprecated. You must change it to "latest".
 > e.g., rename `docker.umami.is/umami-software/umami:postgresql-latest` to `docker.umami.is/umami-software/umami:latest`.
@@ -433,7 +431,7 @@ This instance is configured for standalone deployment with:
 
 This Umami Analytics fork is part of the First8 Marketing analytics and personalization ecosystem. Explore related public repositories:
 
-- **[Umami Analytics](https://github.com/First8Marketing/umami)** - This repository
+- **[First8 Marketing Umami Analytics](https://github.com/First8Marketing/first8marketing-umami)** - This repository
   - Privacy-focused analytics platform
   - Self-hosted, cookie-free analytics
   - GDPR/CCPA compliant by design
