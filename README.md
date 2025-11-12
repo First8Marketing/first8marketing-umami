@@ -97,6 +97,7 @@ docker pull docker.umami.is/umami-software/umami:latest
 ## Getting Updates
 =======
 ## 🔄 Getting Updates
+=======
 > [!WARNING]  
 > If you are updating from Umami V2, image "postgresql-latest" is deprecated. You must change it to "latest".
 > e.g., rename `docker.umami.is/umami-software/umami:postgresql-latest` to `docker.umami.is/umami-software/umami:latest`.
