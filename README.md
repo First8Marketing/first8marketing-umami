@@ -277,7 +277,7 @@ First8Marketing Umami extends standard Umami with enterprise-grade e-commerce an
 
 ## Platform Comparison
 
-First8Marketing Umami vs Standard Umami and other analytics platforms. For complete comparison tables, see [`docs/ANALYTICS_PLATFORM_COMPARISON.md`](docs/ANALYTICS_PLATFORM_COMPARISON.md).
+First8Marketing Umami vs Standard Umami and other analytics platforms.
 
 ### First8Marketing Umami vs Standard Umami
 
