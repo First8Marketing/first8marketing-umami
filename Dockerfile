@@ -1,67 +1,83 @@
-# Install dependencies only when needed
-FROM node:22-alpine AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
-RUN npm install -g pnpm
-RUN pnpm install --frozen-lockfile
+# First8Marketing Umami Analytics - Dockerfile
+# Based on official Umami build with optimizations
 
-# Rebuild the source code only when needed
-FROM node:22-alpine AS builder
+################################################################################
+# Stage 1: Dependencies
+################################################################################
+FROM node:20-alpine AS dependencies
+
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+
+# Copy package files
+COPY package.json package-lock.json* ./
+
+# Install dependencies
+RUN npm ci
+
+################################################################################
+# Stage 2: Build
+################################################################################
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy dependencies
+COPY --from=dependencies /app/node_modules ./node_modules
+
+# Copy source
 COPY . .
-COPY docker/middleware.ts ./src
 
-ARG DATABASE_TYPE
-ARG BASE_PATH
-
-ENV DATABASE_TYPE=$DATABASE_TYPE
-ENV BASE_PATH=$BASE_PATH
-
+# Set environment for build
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
 
-RUN npm run build-docker
+# Build Prisma client
+RUN npx prisma generate
 
-# Production image, copy all the files and run next
-FROM node:22-alpine AS runner
+# Build tracker script
+RUN npm run build-tracker
+
+# Build application
+RUN npm run build
+
+################################################################################
+# Stage 3: Production
+################################################################################
+FROM node:20-alpine AS production
+
 WORKDIR /app
 
-ARG NODE_OPTIONS
-
+# Set environment
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_OPTIONS=$NODE_OPTIONS
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-RUN npm install -g pnpm
+# Install runtime dependencies only
+COPY package.json package-lock.json* ./
+RUN npm ci --only=production
 
-RUN set -x \
-    && apk add --no-cache curl
+# Copy Prisma schema and generate client
+COPY prisma ./prisma
+RUN npx prisma generate
 
-# Script dependencies
-RUN pnpm add npm-run-all dotenv chalk semver prisma@6.18.0 @prisma/adapter-pg@6.18.0
+# Copy built application
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/next.config.ts ./next.config.ts
 
-# Permissions for prisma
-RUN chown -R nextjs:nodejs node_modules/.pnpm/
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 umami && \
+    chown -R umami:nodejs /app
 
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/scripts ./scripts
-COPY --from=builder /app/generated ./generated
+# Switch to non-root user
+USER umami
 
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-USER nextjs
-
+# Expose port
 EXPOSE 3000
 
-ENV HOSTNAME=0.0.0.0
-ENV PORT=3000
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/api/heartbeat', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-CMD ["pnpm", "start-docker"]
+# Start server
+CMD ["npm", "start"]

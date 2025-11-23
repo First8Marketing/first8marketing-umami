@@ -80,3 +80,8 @@ logs/
 # custom
 public/uploads/
 public/cache/
+
+
+# Security: Never commit environment files with secrets
+.env
+.env.production
