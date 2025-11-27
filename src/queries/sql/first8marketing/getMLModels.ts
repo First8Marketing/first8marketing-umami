@@ -40,7 +40,7 @@ export async function getMLModels(params: MLModelsParameters = {}): Promise<MLMo
 
 async function getMLModelsPostgres(params: any): Promise<MLModelData[]> {
   const { rawQuery } = prisma;
-  const { limit, status } = params;
+  const { status } = params;
 
   let statusFilter = '';
   if (status) {
@@ -91,4 +91,3 @@ async function getMLModelsPostgres(params: any): Promise<MLModelData[]> {
     created_at: row.created_at,
   }));
 }
-

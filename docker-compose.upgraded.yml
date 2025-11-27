@@ -1,5 +1,5 @@
 ---
-# Docker Compose for Umami with PostgreSQL 17 + Apache AGE + TimescaleDB
+# Docker Compose for Umami with PostgreSQL 17 + Apache AGE + TimescaleDB + DragonFlyDB
 # This is the upgraded configuration for the hyper-personalized marketing system
 services:
   umami:
@@ -10,10 +10,15 @@ services:
       DATABASE_URL: postgresql://umami:umami@db:5432/umami
       DATABASE_TYPE: postgresql
       APP_SECRET: ${APP_SECRET:-replace-me-with-a-random-string}
+      REDIS_URL: redis://dragonflydb:6379/0
+      WHATSAPP_REDIS_URL: redis://dragonflydb:6379/0
+      WHATSAPP_REDIS_PREFIX: whatsapp:
       # Optional: Enable debug logging
       # LOG_QUERY: 1
     depends_on:
       db:
+        condition: service_healthy
+      dragonflydb:
         condition: service_healthy
     init: true
     restart: always
@@ -24,6 +29,31 @@ services:
       retries: 5
     networks:
       - umami-network
+
+  dragonflydb:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.14.0
+    container_name: umami-dragonflydb
+    restart: always
+    command: >
+      dragonfly
+      --logtostderr
+      --dir=/data
+      --snapshot_cron="0 */6 * * *"
+      --maxmemory=2gb
+      --cache_mode
+    volumes:
+      - dragonflydb-data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - umami-network
+    ulimits:
+      memlock: -1
 
   db:
     # Custom PostgreSQL 17 image with Apache AGE and TimescaleDB
@@ -104,6 +134,8 @@ services:
 
 volumes:
   umami-db-data:
+    driver: local
+  dragonflydb-data:
     driver: local
   pgadmin-data:
     driver: local

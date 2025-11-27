@@ -174,6 +174,7 @@ export default {
   },
   basePath,
   output: 'standalone',
+  serverExternalPackages: ['whatsapp-web.js', 'puppeteer'],
   eslint: {
     ignoreDuringBuilds: true,
   },

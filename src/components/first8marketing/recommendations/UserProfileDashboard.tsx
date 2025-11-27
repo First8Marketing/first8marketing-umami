@@ -38,10 +38,14 @@ export function UserProfileDashboard({
 
   // Calculate summary metrics
   const totalUsers = profiles.length;
-  const totalRevenue = profiles.reduce((sum: number, p: any) => sum + parseFloat(p.total_revenue || 0), 0);
-  const avgSessionsPerUser = totalUsers > 0
-    ? profiles.reduce((sum: number, p: any) => sum + (p.session_count || 0), 0) / totalUsers
-    : 0;
+  const totalRevenue = profiles.reduce(
+    (sum: number, p: any) => sum + parseFloat(p.total_revenue || 0),
+    0,
+  );
+  const avgSessionsPerUser =
+    totalUsers > 0
+      ? profiles.reduce((sum: number, p: any) => sum + (p.session_count || 0), 0) / totalUsers
+      : 0;
   const avgRevenuePerUser = totalUsers > 0 ? totalRevenue / totalUsers : 0;
 
   // Lifecycle distribution
@@ -60,65 +64,71 @@ export function UserProfileDashboard({
 
   return (
     <Column gap="4">
-      <Text size="6" weight="bold">User Profile Analytics</Text>
+      <Text size="6" weight="bold">
+        User Profile Analytics
+      </Text>
 
       {/* Summary Metrics */}
       <Row gap="4">
-        <MetricCard
-          label="Total Users"
-          value={formatNumber(totalUsers)}
-        />
-        <MetricCard
-          label="Total Revenue"
-          value={formatCurrency(totalRevenue)}
-        />
-        <MetricCard
-          label="Avg Sessions/User"
-          value={avgSessionsPerUser.toFixed(1)}
-        />
-        <MetricCard
-          label="Avg Revenue/User"
-          value={formatCurrency(avgRevenuePerUser)}
-        />
+        <MetricCard label="Total Users" value={formatNumber(totalUsers)} />
+        <MetricCard label="Total Revenue" value={formatCurrency(totalRevenue)} />
+        <MetricCard label="Avg Sessions/User" value={avgSessionsPerUser.toFixed(1)} />
+        <MetricCard label="Avg Revenue/User" value={formatCurrency(avgRevenuePerUser)} />
       </Row>
 
       {/* Lifecycle Distribution */}
       <Column gap="2">
-        <Text size="4" weight="bold">Lifecycle Stage Distribution</Text>
+        <Text size="4" weight="bold">
+          Lifecycle Stage Distribution
+        </Text>
         <MetricsTable
           data={Object.entries(lifecycleDistribution).map(([stage, count]) => ({
             lifecycle_stage: stage,
             user_count: count,
-            percentage: ((count as number / totalUsers) * 100).toFixed(1),
+            percentage: (((count as number) / totalUsers) * 100).toFixed(1),
           }))}
           columns={[
             { name: 'lifecycle_stage', label: 'Lifecycle Stage', type: 'string' },
             { name: 'user_count', label: 'Users', type: 'number', format: formatNumber },
-            { name: 'percentage', label: 'Percentage', type: 'number', format: (v: number) => `${v}%` },
+            {
+              name: 'percentage',
+              label: 'Percentage',
+              type: 'number',
+              format: (v: number) => `${v}%`,
+            },
           ]}
         />
       </Column>
 
       {/* Funnel Position Distribution */}
       <Column gap="2">
-        <Text size="4" weight="bold">Funnel Position Distribution</Text>
+        <Text size="4" weight="bold">
+          Funnel Position Distribution
+        </Text>
         <MetricsTable
           data={Object.entries(funnelDistribution).map(([position, count]) => ({
             funnel_position: position,
             user_count: count,
-            percentage: ((count as number / totalUsers) * 100).toFixed(1),
+            percentage: (((count as number) / totalUsers) * 100).toFixed(1),
           }))}
           columns={[
             { name: 'funnel_position', label: 'Funnel Position', type: 'string' },
             { name: 'user_count', label: 'Users', type: 'number', format: formatNumber },
-            { name: 'percentage', label: 'Percentage', type: 'number', format: (v: number) => `${v}%` },
+            {
+              name: 'percentage',
+              label: 'Percentage',
+              type: 'number',
+              format: (v: number) => `${v}%`,
+            },
           ]}
         />
       </Column>
 
       {/* Top Users by Revenue */}
       <Column gap="2">
-        <Text size="4" weight="bold">Top Users by Revenue (Top 20)</Text>
+        <Text size="4" weight="bold">
+          Top Users by Revenue (Top 20)
+        </Text>
         <MetricsTable
           data={profiles.slice(0, 20).map((p: any) => ({
             user_id: p.user_id,
@@ -138,7 +148,12 @@ export function UserProfileDashboard({
             { name: 'sessions', label: 'Sessions', type: 'number', format: formatNumber },
             { name: 'purchases', label: 'Purchases', type: 'number', format: formatNumber },
             { name: 'revenue', label: 'Revenue', type: 'number', format: formatCurrency },
-            { name: 'avg_session_duration', label: 'Avg Duration (s)', type: 'number', format: formatNumber },
+            {
+              name: 'avg_session_duration',
+              label: 'Avg Duration (s)',
+              type: 'number',
+              format: formatNumber,
+            },
             { name: 'price_sensitivity', label: 'Price Sens.', type: 'string' },
             { name: 'device_preference', label: 'Device', type: 'string' },
           ]}
@@ -147,4 +162,3 @@ export function UserProfileDashboard({
     </Column>
   );
 }
-

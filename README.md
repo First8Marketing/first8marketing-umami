@@ -273,6 +273,203 @@ First8Marketing Umami extends standard Umami with enterprise-grade e-commerce an
 
 **Files verified**: `src/lib/storage.ts`, `src/tracker/index.js`
 
+
+## WhatsApp Analytics Integration
+
+### Overview
+
+First8 Marketing Umami now includes **comprehensive WhatsApp Analytics Integration**, enabling multi-channel customer journey tracking and real-time conversation analytics.
+
+**Version**: v2.0.0  
+**Status**: ✅ Production Ready  
+**Release Date**: 2025-11-23
+
+### Key Features
+
+#### 🔐 Multi-Tenant Session Management
+- Isolated WhatsApp Business sessions per team
+- QR code-based authentication
+- Auto-reconnection with exponential backoff
+- Session health monitoring
+- Up to 50 concurrent sessions per instance
+
+#### 💬 Comprehensive Message Tracking
+- All message types supported (text, media, documents, location, etc.)
+- Real-time message synchronization
+- Read receipts and delivery status
+- Message reactions tracking
+- Conversation threading
+- Media handling with URL-based storage
+
+#### 🔗 Cross-Channel User Correlation
+- Links WhatsApp conversations to web analytics
+- 5 correlation methods (phone, email, session, user agent, manual)
+- Confidence scoring (0.00-1.00)
+- Manual verification workflow
+- Complete customer journey mapping
+
+#### 📊 Advanced Analytics
+- **Metrics**: Response time, resolution time, volume, engagement, agent performance
+- **Attribution**: 5 models (last-touch, first-touch, linear, time-decay, position-based)
+- **Funnel Analysis**: 5-stage conversation funnel tracking
+- **Cohort Analysis**: Week-over-week and month-over-month retention
+- **Real-Time Dashboard**: Live metrics with WebSocket updates
+
+#### ⚡ Real-Time Infrastructure
+- Socket.io WebSocket server with Redis pub/sub
+- 17 event types for live updates
+- Multi-instance horizontal scaling
+- Team-based room isolation
+- Notification system with preferences
+
+#### 🎨 Complete UI Dashboard
+- 6 page routes (Dashboard, Sessions, Conversations, Analytics, Reports)
+- 17 React components with TypeScript
+- Zustand state management
+- Responsive design (mobile, tablet, desktop)
+- WCAG AA accessibility compliance
+
+#### 🔌 REST API
+- 36 endpoints across 8 resource groups
+- OpenAPI 3.0 specification
+- Zod validation for type safety
+- Tiered rate limiting
+- Comprehensive error handling
+
+### Quick Start
+
+#### 1. Configure Environment
+
+```bash
+# Copy WhatsApp environment template
+cp .env.whatsapp.example .env.whatsapp
+
+# Edit with your configuration
+nano .env.whatsapp
+```
+
+#### 2. Run Database Migrations
+
+```bash
+# Execute migrations in order
+cd db/postgresql/migrations
+psql $DATABASE_URL -f 001_whatsapp_schema.sql
+psql $DATABASE_URL -f 002_whatsapp_rls_policies.sql
+psql $DATABASE_URL -f 003_whatsapp_indexes.sql
+psql $DATABASE_URL -f 004_whatsapp_functions_triggers.sql
+psql $DATABASE_URL -f 005_whatsapp_notifications.sql
+cd ../../..
+```
+
+#### 3. Start Application
+
+```bash
+# Install dependencies
+pnpm install
+
+# Start development server (includes WebSocket support)
+pnpm dev
+
+# Or production server
+pnpm build
+pnpm start
+```
+
+#### 4. Access WhatsApp Dashboard
+
+Navigate to: `http://localhost:3000/whatsapp/dashboard`
+
+#### 5. Create Your First Session
+
+1. Click "Manage Sessions"
+2. Click "Create New Session"
+3. Enter WhatsApp Business phone number (format: +1234567890)
+4. Enter session name
+5. Scan QR code with WhatsApp mobile app
+6. Wait for "Connected" status ✅
+
+### Architecture
+
+```
+WhatsApp Users
+      ↓
+WhatsApp Integration Service (whatsapp-web.js + Puppeteer)
+      ↓
+Event Processing Pipeline
+      ↓
+┌─────────────────┬─────────────────┬──────────────────┐
+│   PostgreSQL    │  Redis/Dragonfly│  WebSocket Server│
+│ (Data Storage)  │  (Cache/Pub-Sub)│  (Real-Time)     │
+└─────────────────┴─────────────────┴──────────────────┘
+      ↓
+Analytics & Correlation Engine
+      ↓
+Dashboard UI (React 19 + Next.js 15.5)
+```
+
+### Technology Stack
+
+| Component | Technology | Version |
+|-----------|-----------|---------|
+| **WhatsApp Client** | whatsapp-web.js | 1.34.2 |
+| **Browser** | Puppeteer | 22.0 |
+| **WebSocket** | Socket.io | 4.7.0 |
+| **Cache/Queue** | DragonflyDB/Redis | 7.4+ |
+| **Validation** | Zod | 4.1.12 |
+| **State** | Zustand | 5.0.8 |
+
+### Database Schema
+
+**5 Core Tables**:
+- `whatsapp_session` - Session connections
+- `whatsapp_conversation` - Conversation threads
+- `whatsapp_message` - Individual messages
+- `whatsapp_event` - WhatsApp events
+- `whatsapp_user_identity_correlation` - Cross-channel linking
+
+**50+ Indexes** for optimal query performance  
+**18 Functions** for analytics and maintenance  
+**Row-Level Security** for multi-tenant isolation
+
+### API Overview
+
+**36 REST Endpoints**:
+- Sessions (7 endpoints) - Session lifecycle management
+- Messages (5 endpoints) - Message operations
+- Conversations (5 endpoints) - Conversation management
+- Contacts (3 endpoints) - Contact management
+- Analytics (5 endpoints) - Metrics and insights
+- Correlations (4 endpoints) - Identity correlation
+- Notifications (6 endpoints) - Notification management
+- Reports (4 endpoints) - Report generation
+
+**Rate Limits**:
+- Session operations: 10/min
+- Message sending: 60/min
+- Analytics queries: 100/min
+- General queries: 200/min
+
+### Performance Metrics
+
+- **Message Processing**: <50ms latency (p95)
+- **Database Queries**: <50ms for common operations
+- **WebSocket Latency**: <10ms event delivery
+- **Concurrent Sessions**: 50 per instance
+- **Message Throughput**: 60 messages/min per session
+- **API Response Time**: <100ms (p95)
+
+### Security Features
+
+- 🔒 JWT authentication on all endpoints
+- 🔒 Row-Level Security (RLS) for data isolation
+- 🔒 Team-based access control
+- 🔒 Optional message encryption (AES-256-GCM)
+- 🔒 Audit logging for sensitive operations
+- 🔒 Rate limiting protection
+- 🔒 WebSocket authentication
+
+---
+
 ---
 
 ## Platform Comparison

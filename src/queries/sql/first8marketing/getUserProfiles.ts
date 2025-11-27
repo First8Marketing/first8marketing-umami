@@ -27,18 +27,14 @@ export interface UserProfileData {
   last_visit: Date;
 }
 
-export async function getUserProfiles(
-  params: UserProfilesParameters,
-): Promise<UserProfileData[]> {
+export async function getUserProfiles(params: UserProfilesParameters): Promise<UserProfileData[]> {
   return runQuery({
     [PRISMA]: () => getUserProfilesPostgres(params),
     [CLICKHOUSE]: () => getUserProfilesPostgres(params),
   });
 }
 
-async function getUserProfilesPostgres(
-  params: UserProfilesParameters,
-): Promise<UserProfileData[]> {
+async function getUserProfilesPostgres(params: UserProfilesParameters): Promise<UserProfileData[]> {
   const { rawQuery } = prisma;
 
   const profiles = await rawQuery(
@@ -90,4 +86,3 @@ async function getUserProfilesPostgres(
     last_visit: row.last_visit,
   }));
 }
-
