@@ -212,7 +212,9 @@ WordPress blog implementation (50,000 monthly visitors):
 
 ## Custom Features Documentation
 
-First8Marketing Umami extends standard Umami with enterprise-grade e-commerce analytics, ML-powered personalization, and advanced data infrastructure. Below is a summary of custom features. For complete technical documentation, see [`docs/FIRST8MARKETING_CUSTOM_FEATURES.md`](docs/FIRST8MARKETING_CUSTOM_FEATURES.md).
+First8Marketing Umami extends standard Umami with enterprise-grade e-commerce analytics, ML-powered personalization, and advanced data infrastructure. Below is a summary of custom features.
+
+> **Note**: Additional technical documentation is planned for `docs/FIRST8MARKETING_CUSTOM_FEATURES.md`.
 
 ### 1. WooCommerce E-Commerce Tracking
 
@@ -240,6 +242,8 @@ First8Marketing Umami extends standard Umami with enterprise-grade e-commerce an
 - **`user_profiles`** (16 fields) - Behavioral segmentation with lifecycle stages (new → active → at_risk → churned)
 - **`recommendations`** (17 fields) - Performance tracking with CTR, conversion rate, and revenue attribution
 - **`ml_models`** (14 fields) - Model registry with versioning, metrics, and deployment tracking
+
+> **Implementation Note**: Recommendation tables (`user_profiles`, `recommendations`, `ml_models`) are accessed via raw SQL queries rather than Prisma ORM models. See [`src/queries/sql/first8marketing/getUserProfiles.ts`](src/queries/sql/first8marketing/getUserProfiles.ts) for query implementation.
 
 **Status**: ✅ Backend complete, ⚠️ UI implementation in progress
 
@@ -330,8 +334,8 @@ First8 Marketing Umami now includes **comprehensive WhatsApp Analytics Integrati
 - WCAG AA accessibility compliance
 
 #### 🔌 REST API
-- 36 endpoints across 8 resource groups
-- OpenAPI 3.0 specification
+- 39+ endpoints across 8 resource groups
+- OpenAPI 3.0 specification (1066 lines) - see [`src/app/api/v1/whatsapp/openapi.json`](src/app/api/v1/whatsapp/openapi.json)
 - Zod validation for type safety
 - Tiered rate limiting
 - Comprehensive error handling
@@ -433,7 +437,7 @@ Dashboard UI (React 19 + Next.js 15.5)
 
 ### API Overview
 
-**36 REST Endpoints**:
+**39+ REST Endpoints**:
 - Sessions (7 endpoints) - Session lifecycle management
 - Messages (5 endpoints) - Message operations
 - Conversations (5 endpoints) - Conversation management
@@ -441,7 +445,9 @@ Dashboard UI (React 19 + Next.js 15.5)
 - Analytics (5 endpoints) - Metrics and insights
 - Correlations (4 endpoints) - Identity correlation
 - Notifications (6 endpoints) - Notification management
-- Reports (4 endpoints) - Report generation
+- Reports (4+ endpoints) - Report generation
+
+**API Specification**: Full OpenAPI 3.0 documentation available at [`src/app/api/v1/whatsapp/openapi.json`](src/app/api/v1/whatsapp/openapi.json)
 
 **Rate Limits**:
 - Session operations: 10/min
@@ -468,13 +474,77 @@ Dashboard UI (React 19 + Next.js 15.5)
 - 🔒 Rate limiting protection
 - 🔒 WebSocket authentication
 
----
+### Additional Infrastructure
+
+#### 🧪 Test Suite
+
+Comprehensive unit tests for WhatsApp and core functionality:
+
+| Test File | Location | Coverage |
+|-----------|----------|----------|
+| `whatsapp-correlation-engine.test.ts` | `src/lib/__tests__/` | User correlation logic |
+| `whatsapp-message-handler.test.ts` | `src/lib/__tests__/` | Message processing |
+| `whatsapp-session-manager.test.ts` | `src/lib/__tests__/` | Session lifecycle |
+| `charts.test.ts` | `src/lib/__tests__/` | Chart rendering |
+| `detect.test.ts` | `src/lib/__tests__/` | Browser/device detection |
+| `format.test.ts` | `src/lib/__tests__/` | Data formatting utilities |
+
+#### 🔌 WebSocket Infrastructure
+
+Real-time communication layer for live updates:
+
+- **`websocket-server.ts`** - Socket.io server implementation with Redis pub/sub
+- **`websocket-broadcaster.ts`** - Event broadcasting to connected clients
+
+**5 Realtime Event Handlers** (`src/lib/realtime-handlers/`):
+- `session-event-handler.ts` - Session state changes
+- `message-event-handler.ts` - New messages and delivery status
+- `conversation-event-handler.ts` - Conversation updates
+- `analytics-event-handler.ts` - Real-time metrics updates
+- `index.ts` - Handler registration and routing
+
+#### 🔔 Notification System
+
+Configurable notification delivery:
+
+- **Implementation**: [`src/lib/notification-system.ts`](src/lib/notification-system.ts)
+- **Database**: `005_whatsapp_notifications.sql` migration
+- **API**: `/api/v1/whatsapp/notifications/` endpoints
+- **Features**: User preferences, delivery channels, quiet hours
+
+#### ⚡ Rate Limiting & API Infrastructure
+
+Enterprise-grade API protection (`src/lib/api/`):
+
+| File | Purpose |
+|------|---------|
+| `rate-limiter.ts` | Tiered rate limiting (session: 10/min, messages: 60/min, analytics: 100/min) |
+| `response-helpers.ts` | Standardized API response formatting |
+| `validation-schemas.ts` | Zod schemas for request validation |
+
+#### 📊 Engagement Metrics API
+
+Additional analytics endpoint for engagement tracking:
+
+- **Location**: `/api/first8marketing/engagement/metrics/`
+- **Implementation**: [`src/app/api/first8marketing/engagement/metrics/route.ts`](src/app/api/first8marketing/engagement/metrics/route.ts)
+- **Purpose**: Aggregated engagement metrics across sessions
+
+#### 🗺️ User ID Mapping
+
+Cross-platform user identity resolution:
+
+- **Migration 19**: `19_add_user_id_mapping/migration.sql` - User ID mapping table
+- **Migration 20**: `20_add_user_mapping_constraints/migration.sql` - Referential integrity constraints
+- **Purpose**: Link anonymous visitors to authenticated users across sessions
 
 ---
 
 ## Platform Comparison
 
-First8Marketing Umami vs Standard Umami and other analytics platforms. For complete comparison tables, see [`docs/ANALYTICS_PLATFORM_COMPARISON.md`](docs/ANALYTICS_PLATFORM_COMPARISON.md).
+First8Marketing Umami vs Standard Umami and other analytics platforms.
+
+> **Note**: Detailed comparison tables are planned for `docs/ANALYTICS_PLATFORM_COMPARISON.md`.
 
 ### First8Marketing Umami vs Standard Umami
 
