@@ -540,6 +540,300 @@ Cross-platform user identity resolution:
 
 ---
 
+## Demo Mode
+
+### Overview
+
+Demo Mode is a configurable feature that allows you to publicly showcase the First8 Marketing Umami analytics dashboard without exposing administrative access. It's perfect for:
+
+- **Public Demonstrations** - Allow visitors to explore platform capabilities
+- **Lead Generation** - Display contact information prominently for inquiries
+- **Trade Shows & Events** - Run kiosk displays without security concerns
+- **Sales Presentations** - Demonstrate real analytics without client data exposure
+
+**Status**: ✅ Production Ready
+
+### Quick Setup
+
+#### 1. Configure Environment Variables
+
+Add demo configuration to your `.env` file:
+
+```bash
+# Enable demo mode
+DEMO_MODE=true
+
+# Required: Website to display (use one or both)
+DEMO_WEBSITE_ID=your-website-uuid-here
+DEMO_SHARE_ID=your-share-token-here
+
+# Contact information
+DEMO_EMAIL=contact@first8marketing.com
+DEMO_WHATSAPP=+60123456789
+
+# Branding
+DEMO_BRAND_NAME=First8Marketing
+DEMO_TAGLINE=AI-Powered Analytics & Marketing Automation
+
+# Call-to-action
+DEMO_CTA_TEXT=Schedule a Demo
+DEMO_CTA_URL=https://first8marketing.com/demo
+```
+
+#### 2. Restart the Application
+
+```bash
+# Docker
+docker compose restart
+
+# Manual
+pnpm build && pnpm start
+```
+
+#### 3. Access Demo Mode
+
+Navigate to `http://your-domain.com/` - you'll be redirected to `/demo` automatically.
+
+### Environment Variables Reference
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `DEMO_MODE` | Yes | `false` | Enable/disable demo mode |
+| `DEMO_WEBSITE_ID` | Conditional* | - | UUID of the website to display in demo |
+| `DEMO_SHARE_ID` | Conditional* | - | Existing share token for the demo website |
+| `DEMO_EMAIL` | No | - | Contact email displayed in the demo UI |
+| `DEMO_WHATSAPP` | No | - | WhatsApp number for click-to-chat (format: `+1234567890`) |
+| `DEMO_BRAND_NAME` | No | `First8Marketing` | Brand name shown in the header |
+| `DEMO_TAGLINE` | No | `AI-Powered Analytics...` | Tagline shown below the brand name |
+| `DEMO_CTA_TEXT` | No | `Schedule a Demo` | Text for the call-to-action button |
+| `DEMO_CTA_URL` | No | - | URL the CTA button links to |
+
+*Either `DEMO_WEBSITE_ID` or `DEMO_SHARE_ID` must be set when `DEMO_MODE=true`.
+
+### Features
+
+#### Demo UI Components
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| `DemoProvider` | Context wrapper | Provides demo configuration to all components |
+| `DemoHeader` | Top of page | Brand logo, theme toggle, language selector, CTA button |
+| `DemoFooter` | Bottom of page | Contact info, version, powered-by attribution |
+| `DemoContactBanner` | Floating element | Email and WhatsApp quick-contact buttons |
+| `DemoLayout` | Page wrapper | Combines all demo UI components |
+| `DemoPage` | Main content | Analytics dashboard display |
+
+#### Included Functionality
+
+- ✅ Full analytics dashboard view (read-only)
+- ✅ Real-time visitor tracking
+- ✅ Page views, sessions, and metrics
+- ✅ Charts and data visualizations
+- ✅ Theme switching (light/dark mode)
+- ✅ Language selector
+- ✅ Email contact button (mailto link)
+- ✅ WhatsApp contact button (click-to-chat)
+- ✅ Configurable CTA button
+
+### Security
+
+Demo Mode includes comprehensive security measures to prevent unauthorized access:
+
+#### Blocked Routes
+
+The following routes return `403 Forbidden` when Demo Mode is enabled:
+
+| Route | Purpose |
+|-------|---------|
+| `/login` | Prevents login attempts |
+| `/logout` | Blocks logout functionality |
+| `/settings/*` | Blocks all settings pages |
+| `/dashboard/*` | Blocks admin dashboard |
+| `/teams/*` | Blocks team management |
+| `/websites/*` | Blocks website configuration |
+| `/reports/*` | Blocks report generation |
+| `/users/*` | Blocks user management |
+| `/admin/*` | Blocks all admin routes |
+| `/api/auth/*` | Blocks authentication API |
+| `/api/users/*` | Blocks user API endpoints |
+| `/api/teams/*` | Blocks team API endpoints |
+| `/api/admin/*` | Blocks admin API endpoints |
+
+#### Allowed Routes
+
+These routes remain accessible in Demo Mode:
+
+- `/demo` - Demo landing page
+- `/share/*` - Existing share functionality
+- `/script.js` - Tracking script
+- `/api/send` - Event collection endpoint
+- `/api/websites/[id]/*` - Read-only website data API
+- `/_next/*`, `/images/*`, `/fonts/*` - Static assets
+
+#### API Protection
+
+- All write operations return `403 Forbidden`
+- Only configured website data is accessible
+- Rate limiting is applied to demo endpoints
+- No user context or session data is exposed
+
+#### Error Response Format
+
+Blocked routes return a helpful JSON response:
+
+```json
+{
+  "error": "Demo Mode",
+  "message": "This route is not accessible in demo mode. Visit /demo to explore the analytics dashboard.",
+  "demoUrl": "/demo"
+}
+```
+
+### Architecture
+
+#### Route Behavior
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    DEMO_MODE=true                           │
+├─────────────────────────────────────────────────────────────┤
+│  /                    →  Redirect to /demo                  │
+│  /demo                →  Demo analytics dashboard           │
+│  /login               →  403 Forbidden (blocked)            │
+│  /admin/*             →  403 Forbidden (blocked)            │
+│  /settings/*          →  403 Forbidden (blocked)            │
+│  /share/[shareId]     →  Normal share view (unchanged)      │
+│  /api/websites/[id]   →  Read-only API (allowed)            │
+│  /api/auth/*          →  403 Forbidden (blocked)            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Component Hierarchy
+
+```
+DemoLayout
+├── DemoProvider (context)
+│   ├── DemoHeader
+│   │   ├── Logo/Brand (DEMO_BRAND_NAME)
+│   │   ├── Tagline (DEMO_TAGLINE)
+│   │   ├── ThemeToggle
+│   │   ├── LanguageSelector
+│   │   └── CTA Button (DEMO_CTA_TEXT → DEMO_CTA_URL)
+│   ├── DemoContent
+│   │   └── WebsiteProvider → Analytics Dashboard
+│   ├── DemoContactBanner
+│   │   ├── Email Button (DEMO_EMAIL)
+│   │   └── WhatsApp Button (DEMO_WHATSAPP)
+│   └── DemoFooter
+│       ├── Contact Information
+│       ├── Version Info
+│       └── Powered by First8Marketing
+```
+
+### Deployment Guide
+
+#### Docker Deployment
+
+For dedicated demo instances:
+
+```yaml
+# docker-compose.demo.yml
+version: '3.8'
+services:
+  umami-demo:
+    image: first8marketing/umami:latest
+    environment:
+      DATABASE_URL: postgresql://umami:password@db:5432/umami
+      DEMO_MODE: 'true'
+      DEMO_WEBSITE_ID: 'your-website-uuid'
+      DEMO_EMAIL: 'contact@example.com'
+      DEMO_WHATSAPP: '+1234567890'
+      DEMO_BRAND_NAME: 'Your Brand'
+      DEMO_CTA_TEXT: 'Get Started'
+      DEMO_CTA_URL: 'https://your-site.com/signup'
+    ports:
+      - '3000:3000'
+```
+
+```bash
+docker compose -f docker-compose.demo.yml up -d
+```
+
+#### Nginx Reverse Proxy
+
+Example Nginx configuration for demo subdomain:
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name demo.example.com;
+
+    ssl_certificate /etc/letsencrypt/live/demo.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/demo.example.com/privkey.pem;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+#### Vercel/Netlify Deployment
+
+Set environment variables in your hosting provider's dashboard:
+
+1. Go to Project Settings → Environment Variables
+2. Add all `DEMO_*` variables
+3. Set `DEMO_MODE=true`
+4. Redeploy the application
+
+### Troubleshooting
+
+#### Common Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| Demo page shows "No data" | Website ID not configured | Verify `DEMO_WEBSITE_ID` or `DEMO_SHARE_ID` is set correctly |
+| Contact buttons not showing | Contact info not set | Add `DEMO_EMAIL` and/or `DEMO_WHATSAPP` to environment |
+| Still able to access login | Demo mode not enabled | Ensure `DEMO_MODE=true` (string, not boolean) |
+| Root path not redirecting | Server cache | Clear CDN/proxy cache and restart application |
+| WhatsApp link not working | Invalid phone format | Use international format with `+` prefix (e.g., `+60123456789`) |
+
+#### Verifying Demo Mode
+
+Check if demo mode is active:
+
+```bash
+# Should return 403 with demo message
+curl -i https://your-domain.com/login
+
+# Should return demo page content
+curl -i https://your-domain.com/demo
+```
+
+### Files Reference
+
+| File | Purpose |
+|------|---------|
+| [`src/app/demo/DemoProvider.tsx`](src/app/demo/DemoProvider.tsx) | React context for demo configuration |
+| [`src/app/demo/DemoHeader.tsx`](src/app/demo/DemoHeader.tsx) | Header with branding and navigation |
+| [`src/app/demo/DemoFooter.tsx`](src/app/demo/DemoFooter.tsx) | Footer with contact info |
+| [`src/app/demo/DemoContactBanner.tsx`](src/app/demo/DemoContactBanner.tsx) | Floating contact buttons |
+| [`src/app/demo/DemoLayout.tsx`](src/app/demo/DemoLayout.tsx) | Layout wrapper component |
+| [`src/app/demo/DemoPage.tsx`](src/app/demo/DemoPage.tsx) | Main demo page content |
+| [`src/lib/demo.ts`](src/lib/demo.ts) | Demo configuration and utilities |
+| [`src/middleware.ts`](src/middleware.ts) | Route protection middleware |
+| [`docs/DEMO_MODE_SPECIFICATION.md`](docs/DEMO_MODE_SPECIFICATION.md) | Full feature specification |
+
+---
+
 ## Platform Comparison
 
 First8Marketing Umami vs Standard Umami and other analytics platforms.
