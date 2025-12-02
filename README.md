@@ -130,7 +130,6 @@ WooCommerce store implementation metrics:
 | **Event tracking** | Page views only | 47 event types (cart, checkout, product views) | +4,600% data richness |
 | **User journey mapping** | Session-based | Graph-based relationship tracking | Complete journey visibility |
 | **Query performance** | 2.3s avg (large datasets) | 180ms avg (TimescaleDB optimized) | 12.8x faster |
-| **Privacy compliance** | Cookie-based tracking | Cookie-free fingerprinting | GDPR/CCPA compliant |
 | **Data retention** | 90 days typical | Unlimited (time-series compression) | Extended historical analysis |
 
 **Content Publisher Implementation:**
