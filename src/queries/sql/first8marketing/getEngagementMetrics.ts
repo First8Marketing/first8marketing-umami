@@ -35,7 +35,6 @@ export async function getEngagementMetrics(
 }
 
 async function getEngagementMetricsPostgres(params: any): Promise<EngagementMetricsData> {
-  const { websiteId, startDate, endDate } = params;
   const { rawQuery } = prisma;
 
   const result = await rawQuery(
@@ -84,4 +83,3 @@ async function getEngagementMetricsPostgres(params: any): Promise<EngagementMetr
     total_pageviews: Number(row.total_pageviews || 0),
   };
 }
-

@@ -27,4 +27,3 @@ export async function POST(request: Request) {
 
   return json(data);
 }
-

@@ -14,6 +14,17 @@ const frameAncestors = process.env.ALLOWED_FRAME_URLS || '';
 const trackerScriptName = process.env.TRACKER_SCRIPT_NAME || '';
 const trackerScriptURL = process.env.TRACKER_SCRIPT_URL || '';
 
+// Demo Mode Configuration
+const demoMode = process.env.DEMO_MODE === 'true';
+const demoWebsiteId = process.env.DEMO_WEBSITE_ID || '';
+const demoShareId = process.env.DEMO_SHARE_ID || '';
+const demoEmail = process.env.DEMO_EMAIL || '';
+const demoWhatsApp = process.env.DEMO_WHATSAPP || '';
+const demoBrandName = process.env.DEMO_BRAND_NAME || 'First8Marketing';
+const demoTagline = process.env.DEMO_TAGLINE || 'AI-Powered Analytics & Marketing Automation';
+const demoCtaText = process.env.DEMO_CTA_TEXT || 'Schedule a Demo';
+const demoCtaUrl = process.env.DEMO_CTA_URL || '';
+
 const contentSecurityPolicy = `
   default-src 'self';
   img-src 'self' https: data:;
@@ -171,9 +182,20 @@ export default {
     cloudUrl,
     currentVersion: pkg.version,
     defaultLocale,
+    // Demo Mode environment variables
+    demoMode: String(demoMode),
+    demoWebsiteId,
+    demoShareId,
+    demoEmail,
+    demoWhatsApp,
+    demoBrandName,
+    demoTagline,
+    demoCtaText,
+    demoCtaUrl,
   },
   basePath,
   output: 'standalone',
+  serverExternalPackages: ['whatsapp-web.js', 'puppeteer'],
   eslint: {
     ignoreDuringBuilds: true,
   },

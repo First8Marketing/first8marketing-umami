@@ -27,7 +27,7 @@ export async function getWooCommerceRevenue(
 async function getWooCommerceRevenuePostgres(
   websiteId: string,
   parameters: WooCommerceRevenueParameters,
-  filters: QueryFilters,
+  _filters: QueryFilters,
 ): Promise<WooCommerceRevenueResult> {
   const { rawQuery } = prisma;
   const { startDate, endDate, unit, timezone } = parameters;
@@ -152,4 +152,3 @@ async function getWooCommerceRevenuePostgres(
     },
   };
 }
-

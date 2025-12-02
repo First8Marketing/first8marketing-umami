@@ -40,10 +40,7 @@ export async function getCheckoutAbandonment(
   });
 }
 
-async function getCheckoutAbandonmentPostgres(
-  params: any,
-): Promise<CheckoutAbandonmentData> {
-  const { websiteId, startDate, endDate } = params;
+async function getCheckoutAbandonmentPostgres(params: any): Promise<CheckoutAbandonmentData> {
   const { rawQuery } = prisma;
 
   const steps = await rawQuery(
@@ -105,4 +102,3 @@ async function getCheckoutAbandonmentPostgres(
     overall_abandonment_rate,
   };
 }
-

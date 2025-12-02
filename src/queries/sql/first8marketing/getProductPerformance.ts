@@ -37,7 +37,6 @@ export async function getProductPerformance(
 }
 
 async function getProductPerformancePostgres(params: any): Promise<ProductPerformanceRow[]> {
-  const { websiteId, startDate, endDate } = params;
   const { rawQuery } = prisma;
 
   const products = await rawQuery(
@@ -94,4 +93,3 @@ async function getProductPerformancePostgres(params: any): Promise<ProductPerfor
     revenue_per_view: Number(row.revenue_per_view),
   }));
 }
-

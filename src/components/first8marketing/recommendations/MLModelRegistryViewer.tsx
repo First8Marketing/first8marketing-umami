@@ -12,19 +12,19 @@ export interface MLModelRegistryViewerProps {
   status?: string;
 }
 
-export function MLModelRegistryViewer({
-  limit = 50,
-  status,
-}: MLModelRegistryViewerProps) {
+export function MLModelRegistryViewer({ limit = 50, status }: MLModelRegistryViewerProps) {
   const { formatNumber } = useFormat();
 
   const queryParams = new URLSearchParams();
   queryParams.set('limit', limit.toString());
   if (status) queryParams.set('status', status);
 
-  const { data, isLoading, error } = useApi(`/api/first8marketing/recommendations/ml-models?${queryParams.toString()}`, {
-    method: 'GET',
-  });
+  const { data, isLoading, error } = useApi(
+    `/api/first8marketing/recommendations/ml-models?${queryParams.toString()}`,
+    {
+      method: 'GET',
+    },
+  );
 
   if (isLoading) return <LoadingPanel />;
   if (error) return <ErrorMessage message={error.message} />;
@@ -60,48 +60,47 @@ export function MLModelRegistryViewer({
 
   return (
     <Column gap="4">
-      <Text size="6" weight="bold">ML Model Registry</Text>
+      <Text size="6" weight="bold">
+        ML Model Registry
+      </Text>
 
       {/* Summary Metrics */}
       <Row gap="4">
-        <MetricCard
-          label="Total Models"
-          value={formatNumber(totalModels)}
-        />
-        <MetricCard
-          label="Active Models"
-          value={formatNumber(activeModels)}
-        />
-        <MetricCard
-          label="Production"
-          value={formatNumber(productionModels)}
-        />
-        <MetricCard
-          label="Training"
-          value={formatNumber(trainingModels)}
-        />
+        <MetricCard label="Total Models" value={formatNumber(totalModels)} />
+        <MetricCard label="Active Models" value={formatNumber(activeModels)} />
+        <MetricCard label="Production" value={formatNumber(productionModels)} />
+        <MetricCard label="Training" value={formatNumber(trainingModels)} />
       </Row>
 
       {/* Model Type Distribution */}
       <Column gap="2">
-        <Text size="4" weight="bold">Model Type Distribution</Text>
+        <Text size="4" weight="bold">
+          Model Type Distribution
+        </Text>
         <MetricsTable
           data={Object.entries(modelTypeDistribution).map(([type, count]) => ({
             model_type: type,
             count: count,
-            percentage: ((count as number / totalModels) * 100).toFixed(1),
+            percentage: (((count as number) / totalModels) * 100).toFixed(1),
           }))}
           columns={[
             { name: 'model_type', label: 'Model Type', type: 'string' },
             { name: 'count', label: 'Count', type: 'number', format: formatNumber },
-            { name: 'percentage', label: 'Percentage', type: 'number', format: (v: number) => `${v}%` },
+            {
+              name: 'percentage',
+              label: 'Percentage',
+              type: 'number',
+              format: (v: number) => `${v}%`,
+            },
           ]}
         />
       </Column>
 
       {/* Model Registry Table */}
       <Column gap="2">
-        <Text size="4" weight="bold">Model Registry</Text>
+        <Text size="4" weight="bold">
+          Model Registry
+        </Text>
         <MetricsTable
           data={models.map((m: any) => ({
             name: m.name,
@@ -136,4 +135,3 @@ export function MLModelRegistryViewer({
     </Column>
   );
 }
-

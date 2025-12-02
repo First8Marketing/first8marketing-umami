@@ -38,7 +38,9 @@ export function RecommendationPerformanceMetrics({
 
   return (
     <Column gap="4">
-      <Text size="6" weight="bold">Recommendation Performance Analytics</Text>
+      <Text size="6" weight="bold">
+        Recommendation Performance Analytics
+      </Text>
 
       {/* Summary Metrics */}
       <Row gap="4">
@@ -46,31 +48,24 @@ export function RecommendationPerformanceMetrics({
           label="Total Recommendations"
           value={formatNumber(summary.total_recommendations || 0)}
         />
-        <MetricCard
-          label="Total Clicks"
-          value={formatNumber(summary.total_clicks || 0)}
-        />
+        <MetricCard label="Total Clicks" value={formatNumber(summary.total_clicks || 0)} />
         <MetricCard
           label="Total Conversions"
           value={formatNumber(summary.total_conversions || 0)}
         />
-        <MetricCard
-          label="Overall CTR"
-          value={`${(summary.overall_ctr || 0).toFixed(2)}%`}
-        />
+        <MetricCard label="Overall CTR" value={`${(summary.overall_ctr || 0).toFixed(2)}%`} />
         <MetricCard
           label="Overall Conv. Rate"
           value={`${(summary.overall_conversion_rate || 0).toFixed(2)}%`}
         />
-        <MetricCard
-          label="Total Revenue"
-          value={formatCurrency(summary.total_revenue || 0)}
-        />
+        <MetricCard label="Total Revenue" value={formatCurrency(summary.total_revenue || 0)} />
       </Row>
 
       {/* Performance by Strategy */}
       <Column gap="2">
-        <Text size="4" weight="bold">Performance by Strategy</Text>
+        <Text size="4" weight="bold">
+          Performance by Strategy
+        </Text>
         <MetricsTable
           data={by_strategy.map((s: any) => ({
             strategy: s.strategy,
@@ -87,17 +82,34 @@ export function RecommendationPerformanceMetrics({
             { name: 'total_shown', label: 'Shown', type: 'number', format: formatNumber },
             { name: 'total_clicked', label: 'Clicked', type: 'number', format: formatNumber },
             { name: 'total_converted', label: 'Converted', type: 'number', format: formatNumber },
-            { name: 'ctr', label: 'CTR', type: 'number', format: (v: number) => `${v.toFixed(2)}%` },
-            { name: 'conversion_rate', label: 'Conv. Rate', type: 'number', format: (v: number) => `${v.toFixed(2)}%` },
+            {
+              name: 'ctr',
+              label: 'CTR',
+              type: 'number',
+              format: (v: number) => `${v.toFixed(2)}%`,
+            },
+            {
+              name: 'conversion_rate',
+              label: 'Conv. Rate',
+              type: 'number',
+              format: (v: number) => `${v.toFixed(2)}%`,
+            },
             { name: 'total_revenue', label: 'Revenue', type: 'number', format: formatCurrency },
-            { name: 'avg_revenue_per_recommendation', label: 'Avg Rev/Rec', type: 'number', format: formatCurrency },
+            {
+              name: 'avg_revenue_per_recommendation',
+              label: 'Avg Rev/Rec',
+              type: 'number',
+              format: formatCurrency,
+            },
           ]}
         />
       </Column>
 
       {/* Performance by Model Version */}
       <Column gap="2">
-        <Text size="4" weight="bold">Performance by Model Version (Top 20)</Text>
+        <Text size="4" weight="bold">
+          Performance by Model Version (Top 20)
+        </Text>
         <MetricsTable
           data={by_model.map((m: any) => ({
             model_version: m.model_version,
@@ -115,8 +127,18 @@ export function RecommendationPerformanceMetrics({
             { name: 'total_shown', label: 'Shown', type: 'number', format: formatNumber },
             { name: 'total_clicked', label: 'Clicked', type: 'number', format: formatNumber },
             { name: 'total_converted', label: 'Converted', type: 'number', format: formatNumber },
-            { name: 'ctr', label: 'CTR', type: 'number', format: (v: number) => `${v.toFixed(2)}%` },
-            { name: 'conversion_rate', label: 'Conv. Rate', type: 'number', format: (v: number) => `${v.toFixed(2)}%` },
+            {
+              name: 'ctr',
+              label: 'CTR',
+              type: 'number',
+              format: (v: number) => `${v.toFixed(2)}%`,
+            },
+            {
+              name: 'conversion_rate',
+              label: 'Conv. Rate',
+              type: 'number',
+              format: (v: number) => `${v.toFixed(2)}%`,
+            },
             { name: 'total_revenue', label: 'Revenue', type: 'number', format: formatCurrency },
           ]}
         />
@@ -124,7 +146,9 @@ export function RecommendationPerformanceMetrics({
 
       {/* Performance by Recommendation Type */}
       <Column gap="2">
-        <Text size="4" weight="bold">Performance by Recommendation Type</Text>
+        <Text size="4" weight="bold">
+          Performance by Recommendation Type
+        </Text>
         <MetricsTable
           data={by_type.map((t: any) => ({
             recommendation_type: t.recommendation_type,
@@ -140,8 +164,18 @@ export function RecommendationPerformanceMetrics({
             { name: 'total_shown', label: 'Shown', type: 'number', format: formatNumber },
             { name: 'total_clicked', label: 'Clicked', type: 'number', format: formatNumber },
             { name: 'total_converted', label: 'Converted', type: 'number', format: formatNumber },
-            { name: 'ctr', label: 'CTR', type: 'number', format: (v: number) => `${v.toFixed(2)}%` },
-            { name: 'conversion_rate', label: 'Conv. Rate', type: 'number', format: (v: number) => `${v.toFixed(2)}%` },
+            {
+              name: 'ctr',
+              label: 'CTR',
+              type: 'number',
+              format: (v: number) => `${v.toFixed(2)}%`,
+            },
+            {
+              name: 'conversion_rate',
+              label: 'Conv. Rate',
+              type: 'number',
+              format: (v: number) => `${v.toFixed(2)}%`,
+            },
             { name: 'total_revenue', label: 'Revenue', type: 'number', format: formatCurrency },
           ]}
         />
@@ -149,4 +183,3 @@ export function RecommendationPerformanceMetrics({
     </Column>
   );
 }
-

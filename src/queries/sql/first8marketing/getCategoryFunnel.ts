@@ -41,7 +41,6 @@ export async function getCategoryFunnel(
 }
 
 async function getCategoryFunnelPostgres(params: any): Promise<CategoryFunnelData> {
-  const { websiteId, startDate, endDate } = params;
   const { rawQuery } = prisma;
 
   const funnel = await rawQuery(
@@ -107,4 +106,3 @@ async function getCategoryFunnelPostgres(params: any): Promise<CategoryFunnelDat
     total_purchases: funnel[4] ? Number(funnel[4].count) : 0,
   };
 }
-

@@ -212,7 +212,9 @@ WordPress blog implementation (50,000 monthly visitors):
 
 ## Custom Features Documentation
 
-First8Marketing Umami extends standard Umami with enterprise-grade e-commerce analytics, ML-powered personalization, and advanced data infrastructure. Below is a summary of custom features. For complete technical documentation, see [`docs/FIRST8MARKETING_CUSTOM_FEATURES.md`](docs/FIRST8MARKETING_CUSTOM_FEATURES.md).
+First8Marketing Umami extends standard Umami with enterprise-grade e-commerce analytics, ML-powered personalization, and advanced data infrastructure. Below is a summary of custom features.
+
+> **Note**: Additional technical documentation is planned for `docs/FIRST8MARKETING_CUSTOM_FEATURES.md`.
 
 ### 1. WooCommerce E-Commerce Tracking
 
@@ -240,6 +242,8 @@ First8Marketing Umami extends standard Umami with enterprise-grade e-commerce an
 - **`user_profiles`** (16 fields) - Behavioral segmentation with lifecycle stages (new → active → at_risk → churned)
 - **`recommendations`** (17 fields) - Performance tracking with CTR, conversion rate, and revenue attribution
 - **`ml_models`** (14 fields) - Model registry with versioning, metrics, and deployment tracking
+
+> **Implementation Note**: Recommendation tables (`user_profiles`, `recommendations`, `ml_models`) are accessed via raw SQL queries rather than Prisma ORM models. See [`src/queries/sql/first8marketing/getUserProfiles.ts`](src/queries/sql/first8marketing/getUserProfiles.ts) for query implementation.
 
 **Status**: ✅ Backend complete, ⚠️ UI implementation in progress
 
@@ -273,11 +277,568 @@ First8Marketing Umami extends standard Umami with enterprise-grade e-commerce an
 
 **Files verified**: `src/lib/storage.ts`, `src/tracker/index.js`
 
+
+## WhatsApp Analytics Integration
+
+### Overview
+
+First8 Marketing Umami now includes **comprehensive WhatsApp Analytics Integration**, enabling multi-channel customer journey tracking and real-time conversation analytics.
+
+**Version**: v2.0.0  
+**Status**: ✅ Production Ready  
+**Release Date**: 2025-11-23
+
+### Key Features
+
+#### 🔐 Multi-Tenant Session Management
+- Isolated WhatsApp Business sessions per team
+- QR code-based authentication
+- Auto-reconnection with exponential backoff
+- Session health monitoring
+- Up to 50 concurrent sessions per instance
+
+#### 💬 Comprehensive Message Tracking
+- All message types supported (text, media, documents, location, etc.)
+- Real-time message synchronization
+- Read receipts and delivery status
+- Message reactions tracking
+- Conversation threading
+- Media handling with URL-based storage
+
+#### 🔗 Cross-Channel User Correlation
+- Links WhatsApp conversations to web analytics
+- 5 correlation methods (phone, email, session, user agent, manual)
+- Confidence scoring (0.00-1.00)
+- Manual verification workflow
+- Complete customer journey mapping
+
+#### 📊 Advanced Analytics
+- **Metrics**: Response time, resolution time, volume, engagement, agent performance
+- **Attribution**: 5 models (last-touch, first-touch, linear, time-decay, position-based)
+- **Funnel Analysis**: 5-stage conversation funnel tracking
+- **Cohort Analysis**: Week-over-week and month-over-month retention
+- **Real-Time Dashboard**: Live metrics with WebSocket updates
+
+#### ⚡ Real-Time Infrastructure
+- Socket.io WebSocket server with Redis pub/sub
+- 17 event types for live updates
+- Multi-instance horizontal scaling
+- Team-based room isolation
+- Notification system with preferences
+
+#### 🎨 Complete UI Dashboard
+- 6 page routes (Dashboard, Sessions, Conversations, Analytics, Reports)
+- 17 React components with TypeScript
+- Zustand state management
+- Responsive design (mobile, tablet, desktop)
+- WCAG AA accessibility compliance
+
+#### 🔌 REST API
+- 39+ endpoints across 8 resource groups
+- OpenAPI 3.0 specification (1066 lines) - see [`src/app/api/v1/whatsapp/openapi.json`](src/app/api/v1/whatsapp/openapi.json)
+- Zod validation for type safety
+- Tiered rate limiting
+- Comprehensive error handling
+
+### Quick Start
+
+#### 1. Configure Environment
+
+```bash
+# Copy WhatsApp environment template
+cp .env.whatsapp.example .env.whatsapp
+
+# Edit with your configuration
+nano .env.whatsapp
+```
+
+#### 2. Run Database Migrations
+
+```bash
+# Execute migrations in order
+cd db/postgresql/migrations
+psql $DATABASE_URL -f 001_whatsapp_schema.sql
+psql $DATABASE_URL -f 002_whatsapp_rls_policies.sql
+psql $DATABASE_URL -f 003_whatsapp_indexes.sql
+psql $DATABASE_URL -f 004_whatsapp_functions_triggers.sql
+psql $DATABASE_URL -f 005_whatsapp_notifications.sql
+cd ../../..
+```
+
+#### 3. Start Application
+
+```bash
+# Install dependencies
+pnpm install
+
+# Start development server (includes WebSocket support)
+pnpm dev
+
+# Or production server
+pnpm build
+pnpm start
+```
+
+#### 4. Access WhatsApp Dashboard
+
+Navigate to: `http://localhost:3000/whatsapp/dashboard`
+
+#### 5. Create Your First Session
+
+1. Click "Manage Sessions"
+2. Click "Create New Session"
+3. Enter WhatsApp Business phone number (format: +1234567890)
+4. Enter session name
+5. Scan QR code with WhatsApp mobile app
+6. Wait for "Connected" status ✅
+
+### Architecture
+
+```
+WhatsApp Users
+      ↓
+WhatsApp Integration Service (whatsapp-web.js + Puppeteer)
+      ↓
+Event Processing Pipeline
+      ↓
+┌─────────────────┬─────────────────┬──────────────────┐
+│   PostgreSQL    │  Redis/Dragonfly│  WebSocket Server│
+│ (Data Storage)  │  (Cache/Pub-Sub)│  (Real-Time)     │
+└─────────────────┴─────────────────┴──────────────────┘
+      ↓
+Analytics & Correlation Engine
+      ↓
+Dashboard UI (React 19 + Next.js 15.5)
+```
+
+### Technology Stack
+
+| Component | Technology | Version |
+|-----------|-----------|---------|
+| **WhatsApp Client** | whatsapp-web.js | 1.34.2 |
+| **Browser** | Puppeteer | 22.0 |
+| **WebSocket** | Socket.io | 4.7.0 |
+| **Cache/Queue** | DragonflyDB/Redis | 7.4+ |
+| **Validation** | Zod | 4.1.12 |
+| **State** | Zustand | 5.0.8 |
+
+### Database Schema
+
+**5 Core Tables**:
+- `whatsapp_session` - Session connections
+- `whatsapp_conversation` - Conversation threads
+- `whatsapp_message` - Individual messages
+- `whatsapp_event` - WhatsApp events
+- `whatsapp_user_identity_correlation` - Cross-channel linking
+
+**50+ Indexes** for optimal query performance  
+**18 Functions** for analytics and maintenance  
+**Row-Level Security** for multi-tenant isolation
+
+### API Overview
+
+**39+ REST Endpoints**:
+- Sessions (7 endpoints) - Session lifecycle management
+- Messages (5 endpoints) - Message operations
+- Conversations (5 endpoints) - Conversation management
+- Contacts (3 endpoints) - Contact management
+- Analytics (5 endpoints) - Metrics and insights
+- Correlations (4 endpoints) - Identity correlation
+- Notifications (6 endpoints) - Notification management
+- Reports (4+ endpoints) - Report generation
+
+**API Specification**: Full OpenAPI 3.0 documentation available at [`src/app/api/v1/whatsapp/openapi.json`](src/app/api/v1/whatsapp/openapi.json)
+
+**Rate Limits**:
+- Session operations: 10/min
+- Message sending: 60/min
+- Analytics queries: 100/min
+- General queries: 200/min
+
+### Performance Metrics
+
+- **Message Processing**: <50ms latency (p95)
+- **Database Queries**: <50ms for common operations
+- **WebSocket Latency**: <10ms event delivery
+- **Concurrent Sessions**: 50 per instance
+- **Message Throughput**: 60 messages/min per session
+- **API Response Time**: <100ms (p95)
+
+### Security Features
+
+- 🔒 JWT authentication on all endpoints
+- 🔒 Row-Level Security (RLS) for data isolation
+- 🔒 Team-based access control
+- 🔒 Optional message encryption (AES-256-GCM)
+- 🔒 Audit logging for sensitive operations
+- 🔒 Rate limiting protection
+- 🔒 WebSocket authentication
+
+### Additional Infrastructure
+
+#### 🧪 Test Suite
+
+Comprehensive unit tests for WhatsApp and core functionality:
+
+| Test File | Location | Coverage |
+|-----------|----------|----------|
+| `whatsapp-correlation-engine.test.ts` | `src/lib/__tests__/` | User correlation logic |
+| `whatsapp-message-handler.test.ts` | `src/lib/__tests__/` | Message processing |
+| `whatsapp-session-manager.test.ts` | `src/lib/__tests__/` | Session lifecycle |
+| `charts.test.ts` | `src/lib/__tests__/` | Chart rendering |
+| `detect.test.ts` | `src/lib/__tests__/` | Browser/device detection |
+| `format.test.ts` | `src/lib/__tests__/` | Data formatting utilities |
+
+#### 🔌 WebSocket Infrastructure
+
+Real-time communication layer for live updates:
+
+- **`websocket-server.ts`** - Socket.io server implementation with Redis pub/sub
+- **`websocket-broadcaster.ts`** - Event broadcasting to connected clients
+
+**5 Realtime Event Handlers** (`src/lib/realtime-handlers/`):
+- `session-event-handler.ts` - Session state changes
+- `message-event-handler.ts` - New messages and delivery status
+- `conversation-event-handler.ts` - Conversation updates
+- `analytics-event-handler.ts` - Real-time metrics updates
+- `index.ts` - Handler registration and routing
+
+#### 🔔 Notification System
+
+Configurable notification delivery:
+
+- **Implementation**: [`src/lib/notification-system.ts`](src/lib/notification-system.ts)
+- **Database**: `005_whatsapp_notifications.sql` migration
+- **API**: `/api/v1/whatsapp/notifications/` endpoints
+- **Features**: User preferences, delivery channels, quiet hours
+
+#### ⚡ Rate Limiting & API Infrastructure
+
+Enterprise-grade API protection (`src/lib/api/`):
+
+| File | Purpose |
+|------|---------|
+| `rate-limiter.ts` | Tiered rate limiting (session: 10/min, messages: 60/min, analytics: 100/min) |
+| `response-helpers.ts` | Standardized API response formatting |
+| `validation-schemas.ts` | Zod schemas for request validation |
+
+#### 📊 Engagement Metrics API
+
+Additional analytics endpoint for engagement tracking:
+
+- **Location**: `/api/first8marketing/engagement/metrics/`
+- **Implementation**: [`src/app/api/first8marketing/engagement/metrics/route.ts`](src/app/api/first8marketing/engagement/metrics/route.ts)
+- **Purpose**: Aggregated engagement metrics across sessions
+
+#### 🗺️ User ID Mapping
+
+Cross-platform user identity resolution:
+
+- **Migration 19**: `19_add_user_id_mapping/migration.sql` - User ID mapping table
+- **Migration 20**: `20_add_user_mapping_constraints/migration.sql` - Referential integrity constraints
+- **Purpose**: Link anonymous visitors to authenticated users across sessions
+
+---
+
+## Demo Mode
+
+### Overview
+
+Demo Mode is a configurable feature that allows you to publicly showcase the First8 Marketing Umami analytics dashboard without exposing administrative access. It's perfect for:
+
+- **Public Demonstrations** - Allow visitors to explore platform capabilities
+- **Lead Generation** - Display contact information prominently for inquiries
+- **Trade Shows & Events** - Run kiosk displays without security concerns
+- **Sales Presentations** - Demonstrate real analytics without client data exposure
+
+**Status**: ✅ Production Ready
+
+### Quick Setup
+
+#### 1. Configure Environment Variables
+
+Add demo configuration to your `.env` file:
+
+```bash
+# Enable demo mode
+DEMO_MODE=true
+
+# Required: Website to display (use one or both)
+DEMO_WEBSITE_ID=your-website-uuid-here
+DEMO_SHARE_ID=your-share-token-here
+
+# Contact information
+DEMO_EMAIL=contact@first8marketing.com
+DEMO_WHATSAPP=+60123456789
+
+# Branding
+DEMO_BRAND_NAME=First8Marketing
+DEMO_TAGLINE=AI-Powered Analytics & Marketing Automation
+
+# Call-to-action
+DEMO_CTA_TEXT=Schedule a Demo
+DEMO_CTA_URL=https://first8marketing.com/demo
+```
+
+#### 2. Restart the Application
+
+```bash
+# Docker
+docker compose restart
+
+# Manual
+pnpm build && pnpm start
+```
+
+#### 3. Access Demo Mode
+
+Navigate to `http://your-domain.com/` - you'll be redirected to `/demo` automatically.
+
+### Environment Variables Reference
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `DEMO_MODE` | Yes | `false` | Enable/disable demo mode |
+| `DEMO_WEBSITE_ID` | Conditional* | - | UUID of the website to display in demo |
+| `DEMO_SHARE_ID` | Conditional* | - | Existing share token for the demo website |
+| `DEMO_EMAIL` | No | - | Contact email displayed in the demo UI |
+| `DEMO_WHATSAPP` | No | - | WhatsApp number for click-to-chat (format: `+1234567890`) |
+| `DEMO_BRAND_NAME` | No | `First8Marketing` | Brand name shown in the header |
+| `DEMO_TAGLINE` | No | `AI-Powered Analytics...` | Tagline shown below the brand name |
+| `DEMO_CTA_TEXT` | No | `Schedule a Demo` | Text for the call-to-action button |
+| `DEMO_CTA_URL` | No | - | URL the CTA button links to |
+
+*Either `DEMO_WEBSITE_ID` or `DEMO_SHARE_ID` must be set when `DEMO_MODE=true`.
+
+### Features
+
+#### Demo UI Components
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| `DemoProvider` | Context wrapper | Provides demo configuration to all components |
+| `DemoHeader` | Top of page | Brand logo, theme toggle, language selector, CTA button |
+| `DemoFooter` | Bottom of page | Contact info, version, powered-by attribution |
+| `DemoContactBanner` | Floating element | Email and WhatsApp quick-contact buttons |
+| `DemoLayout` | Page wrapper | Combines all demo UI components |
+| `DemoPage` | Main content | Analytics dashboard display |
+
+#### Included Functionality
+
+- ✅ Full analytics dashboard view (read-only)
+- ✅ Real-time visitor tracking
+- ✅ Page views, sessions, and metrics
+- ✅ Charts and data visualizations
+- ✅ Theme switching (light/dark mode)
+- ✅ Language selector
+- ✅ Email contact button (mailto link)
+- ✅ WhatsApp contact button (click-to-chat)
+- ✅ Configurable CTA button
+
+### Security
+
+Demo Mode includes comprehensive security measures to prevent unauthorized access:
+
+#### Blocked Routes
+
+The following routes return `403 Forbidden` when Demo Mode is enabled:
+
+| Route | Purpose |
+|-------|---------|
+| `/login` | Prevents login attempts |
+| `/logout` | Blocks logout functionality |
+| `/settings/*` | Blocks all settings pages |
+| `/dashboard/*` | Blocks admin dashboard |
+| `/teams/*` | Blocks team management |
+| `/websites/*` | Blocks website configuration |
+| `/reports/*` | Blocks report generation |
+| `/users/*` | Blocks user management |
+| `/admin/*` | Blocks all admin routes |
+| `/api/auth/*` | Blocks authentication API |
+| `/api/users/*` | Blocks user API endpoints |
+| `/api/teams/*` | Blocks team API endpoints |
+| `/api/admin/*` | Blocks admin API endpoints |
+
+#### Allowed Routes
+
+These routes remain accessible in Demo Mode:
+
+- `/demo` - Demo landing page
+- `/share/*` - Existing share functionality
+- `/script.js` - Tracking script
+- `/api/send` - Event collection endpoint
+- `/api/websites/[id]/*` - Read-only website data API
+- `/_next/*`, `/images/*`, `/fonts/*` - Static assets
+
+#### API Protection
+
+- All write operations return `403 Forbidden`
+- Only configured website data is accessible
+- Rate limiting is applied to demo endpoints
+- No user context or session data is exposed
+
+#### Error Response Format
+
+Blocked routes return a helpful JSON response:
+
+```json
+{
+  "error": "Demo Mode",
+  "message": "This route is not accessible in demo mode. Visit /demo to explore the analytics dashboard.",
+  "demoUrl": "/demo"
+}
+```
+
+### Architecture
+
+#### Route Behavior
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    DEMO_MODE=true                           │
+├─────────────────────────────────────────────────────────────┤
+│  /                    →  Redirect to /demo                  │
+│  /demo                →  Demo analytics dashboard           │
+│  /login               →  403 Forbidden (blocked)            │
+│  /admin/*             →  403 Forbidden (blocked)            │
+│  /settings/*          →  403 Forbidden (blocked)            │
+│  /share/[shareId]     →  Normal share view (unchanged)      │
+│  /api/websites/[id]   →  Read-only API (allowed)            │
+│  /api/auth/*          →  403 Forbidden (blocked)            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Component Hierarchy
+
+```
+DemoLayout
+├── DemoProvider (context)
+│   ├── DemoHeader
+│   │   ├── Logo/Brand (DEMO_BRAND_NAME)
+│   │   ├── Tagline (DEMO_TAGLINE)
+│   │   ├── ThemeToggle
+│   │   ├── LanguageSelector
+│   │   └── CTA Button (DEMO_CTA_TEXT → DEMO_CTA_URL)
+│   ├── DemoContent
+│   │   └── WebsiteProvider → Analytics Dashboard
+│   ├── DemoContactBanner
+│   │   ├── Email Button (DEMO_EMAIL)
+│   │   └── WhatsApp Button (DEMO_WHATSAPP)
+│   └── DemoFooter
+│       ├── Contact Information
+│       ├── Version Info
+│       └── Powered by First8Marketing
+```
+
+### Deployment Guide
+
+#### Docker Deployment
+
+For dedicated demo instances:
+
+```yaml
+# docker-compose.demo.yml
+version: '3.8'
+services:
+  umami-demo:
+    image: first8marketing/umami:latest
+    environment:
+      DATABASE_URL: postgresql://umami:password@db:5432/umami
+      DEMO_MODE: 'true'
+      DEMO_WEBSITE_ID: 'your-website-uuid'
+      DEMO_EMAIL: 'contact@example.com'
+      DEMO_WHATSAPP: '+1234567890'
+      DEMO_BRAND_NAME: 'Your Brand'
+      DEMO_CTA_TEXT: 'Get Started'
+      DEMO_CTA_URL: 'https://your-site.com/signup'
+    ports:
+      - '3000:3000'
+```
+
+```bash
+docker compose -f docker-compose.demo.yml up -d
+```
+
+#### Nginx Reverse Proxy
+
+Example Nginx configuration for demo subdomain:
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name demo.example.com;
+
+    ssl_certificate /etc/letsencrypt/live/demo.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/demo.example.com/privkey.pem;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+#### Vercel/Netlify Deployment
+
+Set environment variables in your hosting provider's dashboard:
+
+1. Go to Project Settings → Environment Variables
+2. Add all `DEMO_*` variables
+3. Set `DEMO_MODE=true`
+4. Redeploy the application
+
+### Troubleshooting
+
+#### Common Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| Demo page shows "No data" | Website ID not configured | Verify `DEMO_WEBSITE_ID` or `DEMO_SHARE_ID` is set correctly |
+| Contact buttons not showing | Contact info not set | Add `DEMO_EMAIL` and/or `DEMO_WHATSAPP` to environment |
+| Still able to access login | Demo mode not enabled | Ensure `DEMO_MODE=true` (string, not boolean) |
+| Root path not redirecting | Server cache | Clear CDN/proxy cache and restart application |
+| WhatsApp link not working | Invalid phone format | Use international format with `+` prefix (e.g., `+60123456789`) |
+
+#### Verifying Demo Mode
+
+Check if demo mode is active:
+
+```bash
+# Should return 403 with demo message
+curl -i https://your-domain.com/login
+
+# Should return demo page content
+curl -i https://your-domain.com/demo
+```
+
+### Files Reference
+
+| File | Purpose |
+|------|---------|
+| [`src/app/demo/DemoProvider.tsx`](src/app/demo/DemoProvider.tsx) | React context for demo configuration |
+| [`src/app/demo/DemoHeader.tsx`](src/app/demo/DemoHeader.tsx) | Header with branding and navigation |
+| [`src/app/demo/DemoFooter.tsx`](src/app/demo/DemoFooter.tsx) | Footer with contact info |
+| [`src/app/demo/DemoContactBanner.tsx`](src/app/demo/DemoContactBanner.tsx) | Floating contact buttons |
+| [`src/app/demo/DemoLayout.tsx`](src/app/demo/DemoLayout.tsx) | Layout wrapper component |
+| [`src/app/demo/DemoPage.tsx`](src/app/demo/DemoPage.tsx) | Main demo page content |
+| [`src/lib/demo.ts`](src/lib/demo.ts) | Demo configuration and utilities |
+| [`src/middleware.ts`](src/middleware.ts) | Route protection middleware |
+| [`docs/DEMO_MODE_SPECIFICATION.md`](docs/DEMO_MODE_SPECIFICATION.md) | Full feature specification |
+
 ---
 
 ## Platform Comparison
 
-First8Marketing Umami vs Standard Umami and other analytics platforms. For complete comparison tables, see [`docs/ANALYTICS_PLATFORM_COMPARISON.md`](docs/ANALYTICS_PLATFORM_COMPARISON.md).
+First8Marketing Umami vs Standard Umami and other analytics platforms.
+
+> **Note**: Detailed comparison tables are planned for `docs/ANALYTICS_PLATFORM_COMPARISON.md`.
 
 ### First8Marketing Umami vs Standard Umami
 

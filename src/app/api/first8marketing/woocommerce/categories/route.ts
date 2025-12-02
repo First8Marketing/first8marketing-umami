@@ -23,12 +23,7 @@ export async function POST(request: Request) {
   const parameters = await setWebsiteDate(websiteId, body.parameters);
   const filters = await getQueryFilters(body.filters, websiteId);
 
-  const data = await getCategoryFunnel(
-    websiteId,
-    parameters as CategoryFunnelParameters,
-    filters,
-  );
+  const data = await getCategoryFunnel(websiteId, parameters as CategoryFunnelParameters, filters);
 
   return json(data);
 }
-
